@@ -3,21 +3,22 @@ EXTENDS Naturals, Integers, FiniteSets, Bags, Sequences, TLC
 
 
 
+\* add[i, j \in Nat] == i+j
+\*add == [i, j \in Nat |-> i+j]
 
 (*
 --algorithm test {
-     variable members={"A", "B", "C"},
-              states=[i \in members |-> "started"];
+  variables x=1;
   
   
- 
-  {
-   print states;
-    
-   
-    
-  }
- 
+   {
+    l0:
+      print "hello";
+      
+    l1:
+      print "almost done";
+
+   }
  
 
 }
@@ -25,29 +26,31 @@ EXTENDS Naturals, Integers, FiniteSets, Bags, Sequences, TLC
 *)
 
 \* BEGIN TRANSLATION
-VARIABLES members, states, pc
+VARIABLES x, pc
 
-vars == << members, states, pc >>
+vars == << x, pc >>
 
 Init == (* Global variables *)
-        /\ members = {"A", "B", "C"}
-        /\ states = [i \in members |-> "started"]
-        /\ pc = "Lbl_1"
+        /\ x = 1
+        /\ pc = "l0"
 
-Lbl_1 == /\ pc = "Lbl_1"
-         /\ PrintT(states)
-         /\ pc' = "Done"
-         /\ UNCHANGED << members, states >>
+l0 == /\ pc = "l0"
+      /\ PrintT("hello")
+      /\ pc' = "l1"
+      /\ x' = x
 
-Next == Lbl_1
+l1 == /\ pc = "l1"
+      /\ PrintT("almost done")
+      /\ pc' = "Done"
+      /\ x' = x
+
+Next == l0 \/ l1
            \/ (* Disjunct to prevent deadlock on termination *)
               (pc = "Done" /\ UNCHANGED vars)
 
 Spec == Init /\ [][Next]_vars
 
 Termination == <>(pc = "Done")
-
-setState(mbrs, st, state) == \A i \in mbrs: st[i] = state
 
 \* END TRANSLATION
 
