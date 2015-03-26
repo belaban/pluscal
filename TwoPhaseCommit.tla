@@ -6,7 +6,7 @@ anyInState(parts, states, state) == \E i \in parts: states[i] \in state
 
 \* setState(state) == \A i \in participants => states[i] := state
 
-(* PlusCal options (-termination) *)
+\* (* PlusCal options (-termination) *)
 
 (*
 
@@ -116,7 +116,7 @@ Next == leader
            \/ (\E self \in participants: participant(self))
 
 Spec == /\ Init /\ [][Next]_vars
-        
+        /\ \A self \in participants : WF_vars(participant(self))
         /\ WF_vars(leader)
 
 \* END TRANSLATION
@@ -151,5 +151,5 @@ CommittedOrAborted ==    \A i \in participants: states[i] = "committed"
 
 =============================================================================
 \* Modification History
-\* Last modified Thu Mar 26 08:54:05 CET 2015 by bela
+\* Last modified Thu Mar 26 11:53:09 CET 2015 by bela
 \* Created Wed Mar 25 08:25:16 CET 2015 by bela

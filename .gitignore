@@ -23,5 +23,7 @@ doc/tutorial/*.css
 conf/MANIFEST.MF
 target/
 lib/
+*.toolbox
+*.old
 
 
