@@ -62,6 +62,55 @@ anyInState(parts, states, state) == \E i \in parts: states[i] \in state
 
 
 \* BEGIN TRANSLATION
+VARIABLES participants, valid_states, states, pc
+
+vars == << participants, valid_states, states, pc >>
+
+ProcSet == (participants) \cup {"L"}
+
+Init == (* Global variables *)
+        /\ participants = {"A", "B", "C"}
+        /\ valid_states = {"started", "proposed", "prepared", "failed", "committed", "aborted"}
+        /\ states = [i \in participants |-> "started"]
+        /\ pc = [self \in ProcSet |-> CASE self \in participants -> "p0"
+                                        [] self = "L" -> "l0"]
+
+p0(self) == /\ pc[self] = "p0"
+            /\ states[self]="proposed"
+            /\ \/ /\ states' = [states EXCEPT ![self] = "prepared"]
+               \/ /\ states' = [states EXCEPT ![self] = "failed"]
+            /\ pc' = [pc EXCEPT ![self] = "p0"]
+            /\ UNCHANGED << participants, valid_states >>
+
+participant(self) == p0(self)
+
+l0 == /\ pc["L"] = "l0"
+      /\ pc' = [pc EXCEPT !["L"] = "l1"]
+      /\ UNCHANGED << participants, valid_states, states >>
+
+l1 == /\ pc["L"] = "l1"
+      /\ IF allInState(participants,states, {"started", "committed", "aborted"})
+            THEN /\ IF allInState(participants,states, {"committed"})
+                       THEN /\ PrintT(<<"all committed", states>>)
+                       ELSE /\ TRUE
+                 /\ states' = [i \in participants |-> "proposed"]
+            ELSE /\ IF anyInState(participants, states, {"failed"})
+                       THEN /\ states' = [i \in participants |-> "aborted"]
+                       ELSE /\ IF allInState(participants, states, {"prepared"})
+                                  THEN /\ PrintT(<<"all prepared", states>>)
+                                       /\ states' = [i \in participants |-> "committed"]
+                                  ELSE /\ TRUE
+                                       /\ UNCHANGED states
+      /\ pc' = [pc EXCEPT !["L"] = "l0"]
+      /\ UNCHANGED << participants, valid_states >>
+
+leader == l0 \/ l1
+
+Next == leader
+           \/ (\E self \in participants: participant(self))
+
+Spec == /\ Init /\ [][Next]_vars
+        /\ WF_vars(Next)
 
 \* END TRANSLATION
 
@@ -89,5 +138,5 @@ EventuallyCommittedOrAborted ==  <>(AllCommitted \/ AllAborted)
 
 =============================================================================
 \* Modification History
-\* Last modified Thu Mar 26 16:59:43 CET 2015 by bela
+\* Last modified Thu Mar 26 18:28:21 CET 2015 by bela
 \* Created Wed Mar 25 08:25:16 CET 2015 by bela

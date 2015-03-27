@@ -3,21 +3,24 @@ EXTENDS Naturals, Integers, FiniteSets, Bags, Sequences, TLC
 
 
 
+
+
+Remove(i,seq) == [ j \in 1..(Len(seq)-1) |-> IF j < i THEN seq[j] ELSE seq[j+1]]
+
+tail(seq) == [i \in 1..Len(seq)-1 |-> seq[i+1]]
+
+
 \* add[i, j \in Nat] == i+j
 \*add == [i, j \in Nat |-> i+j]
 
 (*
 --algorithm test {
-  variables x=1;
+  variable seq = <<10,11,12,13,14,15>>;
   
   
    {
-    l0:
-      print "hello";
-      
-    l1:
-      print "almost done";
-
+     print <<seq, tail(seq)>>;
+   
    }
  
 
@@ -26,25 +29,20 @@ EXTENDS Naturals, Integers, FiniteSets, Bags, Sequences, TLC
 *)
 
 \* BEGIN TRANSLATION
-VARIABLES x, pc
+VARIABLES seq, pc
 
-vars == << x, pc >>
+vars == << seq, pc >>
 
 Init == (* Global variables *)
-        /\ x = 1
-        /\ pc = "l0"
+        /\ seq = <<10,11,12,13,14,15>>
+        /\ pc = "Lbl_1"
 
-l0 == /\ pc = "l0"
-      /\ PrintT("hello")
-      /\ pc' = "l1"
-      /\ x' = x
+Lbl_1 == /\ pc = "Lbl_1"
+         /\ PrintT(<<seq, tail(seq)>>)
+         /\ pc' = "Done"
+         /\ seq' = seq
 
-l1 == /\ pc = "l1"
-      /\ PrintT("almost done")
-      /\ pc' = "Done"
-      /\ x' = x
-
-Next == l0 \/ l1
+Next == Lbl_1
            \/ (* Disjunct to prevent deadlock on termination *)
               (pc = "Done" /\ UNCHANGED vars)
 
