@@ -25,5 +25,6 @@ target/
 lib/
 *.toolbox
 *.old
+*.cfg
 
 
