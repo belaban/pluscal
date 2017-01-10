@@ -14,23 +14,21 @@ Procs == 1..N
     {
        incr_size: size := size +1; \* Add an element to the queue
        
-       incr_counter: tmp := counter || counter := counter+1;
-                     print <<counter,size>>;
-                     \* assert ~(counter < 0); \* counter can never be negative
+       incr_counter: tmp := counter || counter := counter+1;                     
            
-       tmp_check: if(tmp = 0) { \* start draining the queue
-                     decr_size: size := size-1; \* Remove an element from the queue
-                     decr_counter: counter := counter-1;
-                     print <<counter,size>>;
-                     assert ~(counter < 0);
-                     assert ~(size < 0);
-                     check: if(counter # 0)
-                         goto decr_size;    
-                  }   
-                  else {
-                     goto Done;
-                  } 
-    
+       tmp_check: 
+           if(tmp = 0) { \* start draining the queue
+               decr_size: 
+                   size := size-1; \* Remove an element from the queue
+                   assert ~(size < 0); \* size can never be negative
+                     
+               decr_counter:
+                   counter := counter-1;
+                   \* print <<counter,size>>;
+                   assert ~(counter < 0); \* counter can never be negative
+                   if(counter # 0)
+                       goto decr_size;    
+           }   
     }
 }
  
@@ -57,7 +55,6 @@ incr_size(self) == /\ pc[self] = "incr_size"
 incr_counter(self) == /\ pc[self] = "incr_counter"
                       /\ /\ counter' = counter+1
                          /\ tmp' = [tmp EXCEPT ![self] = counter]
-                      /\ PrintT(<<counter',size>>)
                       /\ pc' = [pc EXCEPT ![self] = "tmp_check"]
                       /\ size' = size
 
@@ -69,27 +66,22 @@ tmp_check(self) == /\ pc[self] = "tmp_check"
 
 decr_size(self) == /\ pc[self] = "decr_size"
                    /\ size' = size-1
+                   /\ Assert(~(size' < 0), 
+                             "Failure of assertion at line 23, column 20.")
                    /\ pc' = [pc EXCEPT ![self] = "decr_counter"]
                    /\ UNCHANGED << counter, tmp >>
 
 decr_counter(self) == /\ pc[self] = "decr_counter"
                       /\ counter' = counter-1
-                      /\ PrintT(<<counter',size>>)
                       /\ Assert(~(counter' < 0), 
-                                "Failure of assertion at line 25, column 22.")
-                      /\ Assert(~(size < 0), 
-                                "Failure of assertion at line 26, column 22.")
-                      /\ pc' = [pc EXCEPT ![self] = "check"]
+                                "Failure of assertion at line 28, column 20.")
+                      /\ IF counter' # 0
+                            THEN /\ pc' = [pc EXCEPT ![self] = "decr_size"]
+                            ELSE /\ pc' = [pc EXCEPT ![self] = "Done"]
                       /\ UNCHANGED << size, tmp >>
 
-check(self) == /\ pc[self] = "check"
-               /\ IF counter # 0
-                     THEN /\ pc' = [pc EXCEPT ![self] = "decr_size"]
-                     ELSE /\ pc' = [pc EXCEPT ![self] = "Done"]
-               /\ UNCHANGED << size, counter, tmp >>
-
 p(self) == incr_size(self) \/ incr_counter(self) \/ tmp_check(self)
-              \/ decr_size(self) \/ decr_counter(self) \/ check(self)
+              \/ decr_size(self) \/ decr_counter(self)
 
 Next == (\E self \in Procs: p(self))
            \/ (* Disjunct to prevent deadlock on termination *)
@@ -100,8 +92,19 @@ Spec == Init /\ [][Next]_vars
 Termination == <>(\A self \in ProcSet: pc[self] = "Done")
 
 \* END TRANSLATION
+
+\* Only one process can be in state decr_counter at any time (add to Model -> Model Overview -> Invariants)
+OnlyOneDecrCounter == \A i,k \in Procs: (i # k) => ~(/\ pc[i] = "decr_counter" /\ pc[k] = "decr_counter") 
+
+\* All the processes are done (state = "Done")
+AllDone == \A self \in Procs: pc[self] = "Done"
+
+\* We cannot have elements left in the queue but no threads to process them
+\* Add Correctness to the model's properties (Model -> Model Overview -> Properties) 
+Correctness == [](AllDone => size = 0 /\ counter = 0) 
+
 =============================================================================
 \* Modification History
-\* Last modified Mon Jan 09 19:12:42 CET 2017 by bela
+\* Last modified Tue Jan 10 12:53:45 CET 2017 by bela
 \* Last modified Fri Feb 13 10:00:32 EST 2015 by nrla
 \* Created Wed Feb 11 18:05:23 EST 2015 by nrla
