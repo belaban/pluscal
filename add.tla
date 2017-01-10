@@ -6,9 +6,9 @@ ASSUME N \in Nat \{0}
 Procs == 1..N
 
 (*
-  Algorithm for having an MPSC queue where producers (after adding to the queue) either become the single consumer, or terminate. The queue
-  is modelled by 'size', and 'counter' decides which producer gets to act as consumer next (after adding an element to the queue).
-  The Java algorithm is in DrainTest (JGroups): 
+  Algorithm for having an MPSC queue where producers (after adding to the queue) either become the single consumer,
+  or terminate. The queue is modelled by 'size', and 'counter' decides which producer gets to act as consumer
+  next (after adding an element to the queue). The Java algorithm is in DrainTest (JGroups): 
   https://github.com/belaban/JGroups/blob/master/tests/junit-functional/org/jgroups/tests/DrainTest.java
 *)
 
@@ -112,6 +112,6 @@ Correctness == [](AllDone => size = 0 /\ counter = 0)
 
 =============================================================================
 \* Modification History
-\* Last modified Tue Jan 10 13:06:00 CET 2017 by bela
+\* Last modified Tue Jan 10 13:06:51 CET 2017 by bela
 \* Last modified Fri Feb 13 10:00:32 EST 2015 by nrla
 \* Created Wed Feb 11 18:05:23 EST 2015 by nrla
