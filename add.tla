@@ -6,7 +6,14 @@ ASSUME N \in Nat \{0}
 Procs == 1..N
 
 (*
---algorithm add {
+  Algorithm for having an MPSC queue where producers (after adding to the queue) either become the single consumer, or terminate. The queue
+  is modelled by 'size', and 'counter' decides which producer gets to act as consumer next (after adding an element to the queue).
+  The Java algorithm is in DrainTest (JGroups): 
+  https://github.com/belaban/JGroups/blob/master/tests/junit-functional/org/jgroups/tests/DrainTest.java
+*)
+
+(*
+--algorithm Add {
     variables size=0, counter=0;
     
     process (p \in Procs)
@@ -67,14 +74,14 @@ tmp_check(self) == /\ pc[self] = "tmp_check"
 decr_size(self) == /\ pc[self] = "decr_size"
                    /\ size' = size-1
                    /\ Assert(~(size' < 0), 
-                             "Failure of assertion at line 23, column 20.")
+                             "Failure of assertion at line 30, column 20.")
                    /\ pc' = [pc EXCEPT ![self] = "decr_counter"]
                    /\ UNCHANGED << counter, tmp >>
 
 decr_counter(self) == /\ pc[self] = "decr_counter"
                       /\ counter' = counter-1
                       /\ Assert(~(counter' < 0), 
-                                "Failure of assertion at line 28, column 20.")
+                                "Failure of assertion at line 35, column 20.")
                       /\ IF counter' # 0
                             THEN /\ pc' = [pc EXCEPT ![self] = "decr_size"]
                             ELSE /\ pc' = [pc EXCEPT ![self] = "Done"]
@@ -105,6 +112,6 @@ Correctness == [](AllDone => size = 0 /\ counter = 0)
 
 =============================================================================
 \* Modification History
-\* Last modified Tue Jan 10 12:53:45 CET 2017 by bela
+\* Last modified Tue Jan 10 13:06:00 CET 2017 by bela
 \* Last modified Fri Feb 13 10:00:32 EST 2015 by nrla
 \* Created Wed Feb 11 18:05:23 EST 2015 by nrla
