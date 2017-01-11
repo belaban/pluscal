@@ -1,7 +1,7 @@
 ------------------------------- MODULE MessageBatchDrainTest3 -------------------------------
 EXTENDS Naturals, TLC
 
-CONSTANT N,              \* number of processes (e.g. 2)
+CONSTANT N,              \* number of processes (pick at least 3)
          MAX_QUEUE_SIZE, \* max size of (bounded) queue (e.g. 10)
          ADD             \* number of elements to add (e.g. 6): make it such that N * ADD > MAX_QUEUE_SIZE to get dropped elements on addition
 
@@ -51,7 +51,7 @@ Min(x,y) == IF x < y THEN x ELSE y
            old_size := size;
            new_size := Min(size+ADD, MAX_QUEUE_SIZE);        
            added := new_size - size || size := new_size; \* Add ADD elements to the queue
-           print <<"old_size= ", old_size, "new_size= ",new_size, "size= ", size, "added= ", added>>;
+           \* print <<"old_size= ", old_size, "new_size= ",new_size, "size= ", size, "added= ", added>>;
            
            if(added > 0) {
              
@@ -97,7 +97,6 @@ add(self) == /\ pc[self] = "add"
              /\ new_size' = [new_size EXCEPT ![self] = Min(size+ADD, MAX_QUEUE_SIZE)]
              /\ /\ added' = [added EXCEPT ![self] = new_size'[self] - size]
                 /\ size' = new_size'[self]
-             /\ PrintT(<<"old_size= ", old_size'[self], "new_size= ",new_size'[self], "size= ", size', "added= ", added'[self]>>)
              /\ IF added'[self] > 0
                    THEN /\ pc' = [pc EXCEPT ![self] = "incr_counter"]
                    ELSE /\ pc' = [pc EXCEPT ![self] = "Done"]
@@ -119,14 +118,13 @@ tmp_check(self) == /\ pc[self] = "tmp_check"
 drain(self) == /\ pc[self] = "drain"
                /\ /\ removed' = [removed EXCEPT ![self] = size]
                   /\ size' = 0
-               /\ PrintT(<<"removed= ", removed'[self]>>)
                /\ pc' = [pc EXCEPT ![self] = "decr_counter"]
                /\ UNCHANGED << counter, tmp, added, new_size, old_size >>
 
 decr_counter(self) == /\ pc[self] = "decr_counter"
                       /\ counter' = counter-1
                       /\ Assert(~counter' < 0, 
-                                "Failure of assertion at line 69, column 28.")
+                                "Failure of assertion at line 68, column 28.")
                       /\ IF counter' # 0
                             THEN /\ pc' = [pc EXCEPT ![self] = "drain"]
                             ELSE /\ pc' = [pc EXCEPT ![self] = "Done"]
@@ -159,6 +157,6 @@ Correctness == [](AllDone => size = 0 /\ counter = 0)
 
 =============================================================================
 \* Modification History
-\* Last modified Wed Jan 11 14:47:10 CET 2017 by bela
+\* Last modified Wed Jan 11 15:13:37 CET 2017 by bela
 \* Last modified Fri Feb 13 10:00:32 EST 2015 by nrla
 \* Created Wed Feb 11 18:05:23 EST 2015 by nrla

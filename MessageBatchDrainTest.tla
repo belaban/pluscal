@@ -1,6 +1,6 @@
 ------------------------------- MODULE MessageBatchDrainTest -------------------------------
 EXTENDS Naturals, TLC
-CONSTANT N
+CONSTANT N \* pick 3 to trigger the error!
 ASSUME N \in Nat \{0}
 
 Procs == 1..N
@@ -22,6 +22,8 @@ Procs == 1..N
 
   This algorithm is INCORRECT as counter going from (say) -4 to 0 will allow the next process to enter the 'drain' label (tmp == 0) while the existing
   process is still in 'drain': this violates the OnlyOneDrain invariant (at the bottom) !!!
+  
+  See MessageBatchDrainTest3.tla for the correct solution
 *)
 
 (*
@@ -120,6 +122,6 @@ Correctness == [](AllDone => size = 0 /\ counter = 0)
 
 =============================================================================
 \* Modification History
-\* Last modified Tue Jan 10 15:29:18 CET 2017 by bela
+\* Last modified Wed Jan 11 15:11:19 CET 2017 by bela
 \* Last modified Fri Feb 13 10:00:32 EST 2015 by nrla
 \* Created Wed Feb 11 18:05:23 EST 2015 by nrla
