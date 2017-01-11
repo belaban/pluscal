@@ -19,6 +19,9 @@ Procs == 1..N
   - T1 removes all elements: removed: 0, size: 0, counter: -10
   - T2 increments counter by 5: counter is -5
   - T3 increments counter by 5: counter is 0
+
+  This algorithm is INCORRECT as counter going from (say) -4 to 0 will allow the next process to enter the 'drain' label (tmp == 0) while the existing
+  process is still in 'drain': this violates the OnlyOneDrain invariant (at the bottom) !!!
 *)
 
 (*
