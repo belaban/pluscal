@@ -62,6 +62,7 @@ Min(x,y) == IF x < y THEN x ELSE y
                    if(tmp = 0) { \* start draining the queue
                        drain: 
                            removed := size || size := 0; \* Remove _all_ elements from the queue
+                           \* Deliver removed messages to the application
                      
                        decr_counter:
                            counter := counter-1;
@@ -157,6 +158,6 @@ Correctness == [](AllDone => size = 0 /\ counter = 0)
 
 =============================================================================
 \* Modification History
-\* Last modified Wed Jan 11 15:13:37 CET 2017 by bela
+\* Last modified Thu Jan 12 11:03:39 CET 2017 by bela
 \* Last modified Fri Feb 13 10:00:32 EST 2015 by nrla
 \* Created Wed Feb 11 18:05:23 EST 2015 by nrla
